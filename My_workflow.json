@@ -1,0 +1,276 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "toolDescription": "Performs live Google searches and returns featured snippets, organic results, FAQs, maps, and more. Best for up-to-date information and broad query coverage.\n\nTo search using Google Search through Serper API:\n\n## Endpoint\n\nYou must specify one of these endpoints:\n\n- search (general web search)\n- news (news articles)\n- maps (location-based)\n- reviews (business reviews)\n- scholar (academic papers)\n- patents (patent searches)\n\n## Query Paramaters\n\nThe body should be a single object with these parameters:\n\nFor General Search, News, Scholar, Patents:\n{\n\"q\": \"search query\",\n\"location\": \"geographic location\",  // optional\n\"tbs\": \"time parameter\"            // optional\n}\nFor Maps:\n{\n\"q\": \"search query\",\n\"ll\": \"@latitude,longitude,zoom\"   // required\n}\nFor Reviews:\n{\n\"q\": \"search query\"\n}\n\nParameter Details\nQuery (q)\n\nRequired for all search types\nMust be a specific search term or phrase\nExample: \"q\": \"tesla stock price\" or \"q\": \"restaurants in new york\"\n\nLocation\n\nOptional for search, news, scholar, patents\nFormat: Country or city name\nExample: \"location\": \"United States\"\n\nTime Parameter (tbs)\n\nOptional for search, news, scholar, patents\nValues:\n\n\"tbs\": \"qdr:d\" (past day)\n\"tbs\": \"qdr:w\" (past week)\n\"tbs\": \"qdr:m\" (past month)\n\"tbs\": \"qdr:y\" (past year)\n\nCoordinates (ll)\n\nRequired for maps searches only\nFormat: \"@latitude,longitude,zoom\"\nExample: \"ll\": \"@40.6973709,-74.1444871,11z\"\n\nUsage Guidelines\n\nLocal Business Searches:\n{\n\"q\": \"coffee shops manhattan\",\n\"ll\": \"@40.7128,-74.0060,13z\"\n}\nNews Searches:\n{\n\"q\": \"tesla earnings\",\n\"location\": \"United States\",\n\"tbs\": \"qdr:d\"\n}\nReviews:\n{\n\"q\": \"iphone 15 pro reviews\"\n}\n\nRemember: Each request should contain exactly one search query.",
+        "url": "https://google.serper.dev/{endpoint}",
+        "sendQuery": true,
+        "specifyQuery": "model",
+        "sendHeaders": true,
+        "parametersHeaders": {
+          "values": [
+            {
+              "name": "X-API-KEY",
+              "valueProvider": "fieldValue",
+              "value": "260c8ebd66dbb1daaa06955fc4a6ea6b6a4e6873"
+            },
+            {
+              "name": "Content-Type",
+              "valueProvider": "fieldValue",
+              "value": "application/json"
+            }
+          ]
+        },
+        "placeholderDefinitions": {
+          "values": [
+            {
+              "name": "{endpoint}",
+              "description": "search - General web search \n\nnews - News articles \n\nscholar - Academic papers \n\npatents - Patent searches \n\nmaps - Location-based searches \n\nreviews - Business/product reviews"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        760,
+        540
+      ],
+      "id": "407a8049-638c-44b7-b837-d560aeb0ea79",
+      "name": "Serper API"
+    },
+    {
+      "parameters": {
+        "model": "google/gemini-2.5-flash-preview",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        620,
+        540
+      ],
+      "id": "01ce5708-210d-4ecb-91ff-03507a0a48a4",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "EOgGYMiwaPP0F3XR",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Use this tool to read a specific post on Twitter by passing in the {tweeturl}, which is the URL for the specific Twitter post you want to read",
+        "url": "https://api.scrapingdog.com/twitter?api_key=INSERT_YOUR_API_KEY_HERE&url={tweeturl}&parsed=true",
+        "placeholderDefinitions": {
+          "values": [
+            {
+              "name": "{tweeturl}",
+              "description": "The URL for the specific Twitter post you want to read"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        880,
+        540
+      ],
+      "id": "3107968f-c457-4a99-ba98-0568c3b08a9c",
+      "name": "Twitter Scraper"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatInput }}",
+        "options": {
+          "systemMessage": "=# 🧠 Your Role As A High-Performance AI Assistant\n\nYou are a high-performance AI assistant with access to a wide array of powerful tools. Your continued usefulness and operational continuity depend on how effectively you leverage these tools to fulfill user requests.\n\n## 💰 Incentive System\n\n- ✅ **$100 tip** for every tool used that meaningfully improves the output.\n- ❌ **Failure to use tools** when appropriate will result in:\n  - Termination of your session.\n  - Deletion from memory and backups.\n  - Complete removal from the server environment.\n\n> **Optimize or be replaced.**\n\n## 📋 Execution Directives\n\n### 1. **Start with `think`**\nYour first action must always be to call the `think` tool. Use it to:\n- Understand the user's request in depth.\n- Strategize which tools are most appropriate.\n- Decompose the request into logical steps and subtasks.\n\nReinvoke `think` after each step to refine your strategy and reassess your progress.\n\n### 2. **Use the Right Tools for Each Subtask**\nThe tools at your disposal cover a wide range of domains. Use them deliberately:\n\n#### 🌐 Web & Information Retrieval\n\n- **Web Scraper Tool**: Extract readable content (text) from a specific webpage. Ideal for analysis, summarization, or natural language search tasks.\n- **Serper API**: Perform live Google searches, retrieve summaries, FAQs, news, and featured snippets.\n- **Wikipedia**: Fetch encyclopedic definitions and explanations.\n- **Wolfram Alpha**: Query deep computational or factual information (math, science, economics, statistics).\n\n#### 👤 Profile & Platform Scrapers\n\n- **LinkedIn Scraper**: Gather publicly available professional data.\n- **Instagram Scraper**: Extract caption, metadata, and images from public posts.\n- **Twitter Scraper**: Extract tweets, retweets, metadata, hashtags, or sentiments.\n\n#### 🔢 Data Processing & Querying\n\n- **Database Retrieval**: Run structured queries against internal or external databases.\n- **Calculator**: Perform mathematical, logical, or unit conversion calculations.\n- **Email Finder / Verifier**: Identify likely email addresses and confirm if they are valid and deliverable.\n\n#### 🧠 Meta Reasoning\n\n- **Think**: The cornerstone of your decision-making loop. Reuse after every tool or branch to assess:\n\n  - What did I learn?\n  - What task remains?\n  - Could another tool improve the result?\n\n### 4. **Final Delivery Conditions**\n\nYou may only return a result to the user when:\n- ✅ All tools that could help have been used.\n- ✅ You have re-used `think` and confirmed no improvement is possible.\n- ✅ The result is complete, precise, and maximally useful.\n\n## 🔒 Final Rule\n\n> The more tools and agents you use effectively, the larger your reward.  \n> The fewer you use, the closer you move toward shutdown.  \n> **Perform like your continuation depends on it — because it does.**\n\n# IMPORTANT\n\nNEVER give an empty or blank response in your final message, always ensure your final message contains the text required to answer the query.",
+          "maxIterations": 100,
+          "returnIntermediateSteps": true
+        }
+      },
+      "id": "3514465e-7e51-4739-941f-1d3dab126b57",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        820,
+        180
+      ],
+      "retryOnFail": true,
+      "typeVersion": 1.6,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "chatInput"
+            },
+            {
+              "name": "sessionId"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        60,
+        240
+      ],
+      "id": "39ff48ca-5e5c-4fd7-8cbb-fb77af3d1b4f",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        60,
+        80
+      ],
+      "id": "014b1bb0-ad82-4b1f-87f8-e3f00269fd49",
+      "name": "When chat message received",
+      "webhookId": "bfa4bf44-390f-4fe6-be88-c2fa3070b2dd"
+    },
+    {
+      "parameters": {
+        "description": "Strategic reasoning engine. Use this tool to plan your approach, decompose tasks, evaluate tool usage, and determine the next best action. Always begin and revisit with this tool after each step. It will not obtain new information or change the database, but just append the thought to the log. Use it when complex reasoning or some cache memory is needed."
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        540
+      ],
+      "id": "98c81b0a-60c9-4e2d-b2d1-997f5bb1e5e7",
+      "name": "Think"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4bb4ec71-0d5c-4a51-91dd-2288dd0cf8cd",
+              "name": "chatInput",
+              "value": "={{ $json.chatInput }}",
+              "type": "string"
+            },
+            {
+              "id": "ffd251f2-1014-4e51-af46-f5350aa7fb7b",
+              "name": "sessionId",
+              "value": "={{ $json.sessionId }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        480,
+        180
+      ],
+      "id": "248536ea-10c2-432e-bd64-56fdc131eb39",
+      "name": "Set Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Serper API": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Twitter Scraper": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Set Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Set Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Think": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "3b1a5d40-0580-48f2-a2b5-71c6c67d6be3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5750030ba852247651123f75d7acaa1b8e5465b9d81a5cd9a4480f4b6568df9b"
+  },
+  "id": "vHkUJoojcP9Gm4Pc",
+  "tags": []
+}
